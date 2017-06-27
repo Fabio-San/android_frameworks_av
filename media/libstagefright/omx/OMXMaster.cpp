@@ -68,6 +68,9 @@ OMXMaster::~OMXMaster() {
 }
 
 void OMXMaster::addVendorPlugin() {
+#ifdef CONFIG_VSP_SUPPORT_1080I
+    addPlugin("libstagefrighthw_cm.so");
+#endif
     addPlugin("libstagefrighthw.so");
 }
 

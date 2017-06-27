@@ -76,6 +76,8 @@ LOCAL_SRC_FILES:=                         \
         WVMExtractor.cpp                  \
         XINGSeeker.cpp                    \
         avc_utils.cpp                     \
+		avc_utils_sprd.cpp                \
+        FFMPEGSoftCodec.cpp               \
 
 LOCAL_C_INCLUDES:= \
         $(TOP)/frameworks/av/include/media/ \
@@ -167,6 +169,24 @@ endif
 
 LOCAL_CLANG := true
 LOCAL_SANITIZE := unsigned-integer-overflow signed-integer-overflow
+
+ifeq ($(strip $(BOARD_VSP_SUPPORT_1080I)),true)
+LOCAL_CFLAGS += -DCONFIG_VSP_SUPPORT_1080I
+endif
+
+# FFMPEG plugin
+LOCAL_C_INCLUDES += $(TOP)/external/stagefright-plugins/include
+
+#LOCAL_CFLAGS += -DLOG_NDEBUG=0
+
+ifeq ($(BOARD_USE_SAMSUNG_COLORFORMAT), true)
+LOCAL_CFLAGS += -DUSE_SAMSUNG_COLORFORMAT
+
+# Include native color format header path
+LOCAL_C_INCLUDES += \
+	$(TOP)/hardware/samsung/exynos4/hal/include \
+	$(TOP)/hardware/samsung/exynos4/include
+endif
 
 LOCAL_MODULE:= libstagefright
 

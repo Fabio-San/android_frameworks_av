@@ -48,6 +48,10 @@
 
 #include <stagefright/AVExtensions.h>
 
+#ifdef CONFIG_VSP_SUPPORT_1080I
+#include "include/avc_utils_sprd.h"
+#endif
+
 namespace android {
 
 static const int64_t kBufferTimeOutUs = 30000ll; // 30 msec
@@ -264,6 +268,15 @@ static VideoFrame *extractVideoFrame(
 
     bool firstSample = true;
     int64_t targetTimeUs = -1ll;
+bool isInterlaceFrame = false;
+#ifdef CONFIG_VSP_SUPPORT_1080I
+    bool isVideoAVC = !strcasecmp(MEDIA_MIMETYPE_VIDEO_AVC,mime);
+    sp<ABuffer> sps;
+    if (isVideoAVC && videoFormat->findBuffer("csd-0", &sps) && (isInterlacedSequence(sps->data(), sps->size()) == 1)) {
+        ALOGI("interlace avc stream, more inputs");
+        isInterlaceFrame = true;
+    }
+#endif
 
     do {
         size_t inputIndex = -1;
@@ -308,7 +321,7 @@ static VideoFrame *extractVideoFrame(
                 memcpy(codecBuffer->data(),
                         (const uint8_t*)mediaBuffer->data() + mediaBuffer->range_offset(),
                         mediaBuffer->range_length());
-                if (isAvcOrHevc && IsIDR(codecBuffer) && !isSeekingClosest) {
+                if (isAvcOrHevc && IsIDR(codecBuffer) && !isSeekingClosest && !isInterlaceFrame) {
                     // Only need to decode one IDR frame, unless we're seeking with CLOSEST
                     // option, in which case we need to actually decode to targetTimeUs.
                     haveMoreInputs = false;
